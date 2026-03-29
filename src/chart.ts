@@ -47,7 +47,8 @@ export default function (data: string) {
     return true;
   });
 
-  const tags = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
+  const sortedTags = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
+  const tags = ['vibecoding', ...sortedTags.filter((tag) => tag !== 'vibecoding')];
   const top5Tags = new Set(tags.slice(0, 5));
   const colors = palette('mpn65', tags.length);
   const dataset = {
