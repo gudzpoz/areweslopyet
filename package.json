@@ -11,5 +11,9 @@
   "devDependencies": {
     "typescript": "~5.9.3",
     "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "echarts": "^6.0.0",
+    "google-palette": "^1.1.1"
   }
 }

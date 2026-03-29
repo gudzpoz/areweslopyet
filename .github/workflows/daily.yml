@@ -1,0 +1,56 @@
+name: Daily Update
+
+on:
+  # daily (07:07 UTC)
+  schedule:
+    - cron: "7 7 * * *"
+  # or manual triggering
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-slim
+
+    permissions:
+      contents: write  # required to push commits
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update data
+        run: |
+          ./count.sh
+
+      - name: Commit and push changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
+            git commit -m "chore: daily update"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+          cache: true
+
+      - name: Build site
+        run: |
+          pnpm install
+          pnpm build
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          force_orphan: true
