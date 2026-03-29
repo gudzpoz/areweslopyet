@@ -53,10 +53,10 @@ export default function (data: string) {
   const colors = palette('mpn65', tags.length);
   const dataset = {
     dimentions: ['date', ...tags],
-    source: trend.map(([date, tags]) => ({
+    source: trend.map(([date, all]) => [
       date,
-      ...tags,
-    })),
+      ...tags.map((tag) => all[tag] || 0),
+    ]),
   };
 
   const chart = echarts.init(document.querySelector<HTMLDivElement>('#app')!, null, {
@@ -78,7 +78,9 @@ export default function (data: string) {
       data: tags,
       selected: Object.fromEntries(tags.map((tag) => [tag, top5Tags.has(tag)])),
     },
-    tooltip: {},
+    tooltip: {
+      trigger: 'axis',
+    },
     dataset,
     series: tags.map((tag, i) => ({
       name: tag,

@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-slim
 
     permissions:
-      contents: write  # required to push commits
+      contents: write
 
     steps:
       - name: Checkout repo
@@ -25,17 +25,8 @@ jobs:
 
       - name: Update data
         run: |
+          curl -o public/count.csv https://areweslopyet.iroiro.party/count.csv
           ./count.sh
-
-      - name: Commit and push changes
-        run: |
-          if [[ -n "$(git status --porcelain)" ]]; then
-            git add -A
-            git commit -m "chore: daily update"
-            git push
-          else
-            echo "No changes to commit"
-          fi
 
       - name: Setup PNPM
         uses: pnpm/action-setup@v5

@@ -16,3 +16,11 @@ main {
   width: 100%;
   height: 28em;
 }
+
+span.tag {
+  background-color: lightgoldenrodyellow;
+  border: 1px solid goldenrod;
+  border-radius: 5px;
+  font-size: 0.9em;
+  padding: 1px 4px;
+}
