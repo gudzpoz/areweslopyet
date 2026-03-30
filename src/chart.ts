@@ -20,14 +20,16 @@ echarts.use([
   SVGRenderer,
 ]);
 
+const ENTRIES_PER_DAY = 4;
+const DAYS = 30;
+
 export default function (data: string) {
 
-  const dates = new Set<string>();
   let total = 0;
   const totals: Record<string, number> = {};
-  const trend = data.split('\n').filter(
+  const allDates = data.split('\n').filter(
     (line) => line.trim() !== '' && !line.startsWith('date'),
-  ).map((line) => {
+  ).slice(-DAYS * ENTRIES_PER_DAY * 2).map((line) => {
     const [date, totalStr, othersStr] = line.split(',');
     const othersSplit = othersStr.split(' ');
     const all: Record<string, number> = {};
@@ -39,24 +41,45 @@ export default function (data: string) {
     }
     total = Math.max(total, parseInt(totalStr));
     return [date, all] as [string, Record<string, number>];
-  }).filter(([date]) => {
-    if (dates.has(date)) {
-      return false;
-    }
-    dates.add(date);
-    return true;
-  });
+  })
 
   const sortedTags = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
   const tags = ['vibecoding', ...sortedTags.filter((tag) => tag !== 'vibecoding')];
   const top5Tags = new Set(tags.slice(0, 5));
+
+  function divide(arr: [string, ...number[]], n: number) {
+    for (let i = 1; i < arr.length; i++) {
+      (arr[i] as number) /= n;
+    }
+  }
+
+  const trend: [string, ...number[]][] = [];
+  let lastN = 0;
+  let last: [string, ...number[]] | undefined = void 0;
+  for (const [date, all] of allDates) {
+    if (!last || last[0] !== date) {
+      if (last) {
+        divide(last, lastN);
+        trend.push(last);
+      }
+      lastN = 1;
+      last = [date, ...tags.map((tag) => all[tag] || 0)];
+    } else {
+      for (let i = 0; i < tags.length; i++) {
+        (last[i + 1] as number) += all[tags[i]] || 0;
+      }
+      lastN++;
+    }
+  }
+  if (last) {
+    divide(last, lastN);
+    trend.push(last);
+  }
+
   const colors = palette('mpn65', tags.length);
   const dataset = {
     dimentions: ['date', ...tags],
-    source: trend.map(([date, all]) => [
-      date,
-      ...tags.map((tag) => all[tag] || 0),
-    ]),
+    source: trend,
   };
 
   const chart = echarts.init(document.querySelector<HTMLDivElement>('#app')!, null, {
@@ -65,7 +88,7 @@ export default function (data: string) {
   chart.setOption({
     xAxis: {
       type: 'category',
-      data: trend.map(([date]) => date).slice(-30),
+      data: trend.map(([date]) => date).slice(-DAYS),
     },
     yAxis: {
       type: 'value',
@@ -80,6 +103,15 @@ export default function (data: string) {
     },
     tooltip: {
       trigger: 'axis',
+      valueFormatter: function (v: number | unknown) {
+        if (typeof v === 'number') {
+          if (v % 1 === 0) {
+            return v.toFixed(0);
+          }
+          return `${Math.floor(v)}~${Math.ceil(v)}`;
+        }
+        return v;
+      },
     },
     dataset,
     series: tags.map((tag, i) => ({

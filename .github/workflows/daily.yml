@@ -3,7 +3,7 @@ name: Daily Update
 on:
   # daily (07:07 UTC)
   schedule:
-    - cron: "7 7 * * *"
+    - cron: "22 */6 * * *"
   # or manual triggering
   workflow_dispatch:
 
