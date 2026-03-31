@@ -24,3 +24,7 @@ span.tag {
   font-size: 0.9em;
   padding: 1px 4px;
 }
+
+div.tooltip > div > div > div > div {
+  text-align: left;
+}

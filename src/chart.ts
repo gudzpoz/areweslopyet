@@ -103,6 +103,7 @@ export default function (data: string) {
     },
     tooltip: {
       trigger: 'axis',
+      className: 'tooltip',
       valueFormatter: function (v: number | unknown) {
         if (typeof v === 'number') {
           if (v % 1 === 0) {
