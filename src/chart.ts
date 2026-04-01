@@ -76,7 +76,20 @@ export default function (data: string) {
     trend.push(last);
   }
 
-  const colors = palette('mpn65', tags.length);
+  const colors = palette('mpn65', Math.min(tags.length, 65));
+  if (colors.length < tags.length) {
+    function shuffle(array: string[]) {
+      for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = array[i];
+          array[i] = array[j];
+          array[j] = temp;
+      }
+    }
+    let rest = palette('tol-rainbow', tags.length - colors.length);
+    shuffle(rest);
+    colors.push(...rest);
+  }
   const dataset = {
     dimentions: ['date', ...tags],
     source: trend,
