@@ -82,10 +82,10 @@ export default function (data: string) {
     source: trend,
   };
 
-  const chart = echarts.init(document.querySelector<HTMLDivElement>('#app')!, null, {
+  const chart = echarts.init(document.querySelector<HTMLDivElement>('#chart')!, null, {
     renderer: 'svg',
   });
-  chart.setOption({
+  const option = {
     xAxis: {
       type: 'category',
       data: trend.map(([date]) => date).slice(-DAYS),
@@ -95,7 +95,7 @@ export default function (data: string) {
       min: 0,
     },
     grid: {
-      bottom: '36%',
+      bottom: '50%',
     },
     legend: {
       data: tags,
@@ -122,7 +122,23 @@ export default function (data: string) {
         color: `#${colors[i]}`,
       },
     })),
-  });
-  window.addEventListener('resize', () => chart.resize());
+  };
+  chart.setOption(option);
+
+  function resize() {
+    const container = document.querySelector<HTMLDivElement>('#app')!;
+    const GRAPH_ROWS = 14;
+    const AVG_WIDTH = 80;
+    const width = container.offsetWidth;
+    const requiredRows = Math.ceil(tags.length * AVG_WIDTH / width);
+    const total = requiredRows * 1.8 + GRAPH_ROWS + 1;
+    container.style.height = `${total}em`;
+    option.grid.bottom = `${(1 - GRAPH_ROWS / total) * 100}%`;
+    chart.setOption(option);
+    chart.resize();
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
 
 }
