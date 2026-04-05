@@ -32,6 +32,23 @@ span.tag {
   padding: 1px 4px;
 }
 
-div.tooltip > div > div > div > div {
+.tooltip-date {
+  font-size: small;
+  font-weight: bold;
+}
+
+.tooltip-name {
   text-align: left;
+}
+.tooltip-name > .color {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 100%;
+}
+
+.tooltip-range {
+  text-align: right;
+  font-weight: bold;
+  padding-left: 1em;
 }

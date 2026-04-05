@@ -20,6 +20,13 @@ echarts.use([
   SVGRenderer,
 ]);
 
+interface Series {
+  axisValue: string,
+  color: string,
+  dataIndex: number,
+  seriesIndex: number,
+}
+
 const ENTRIES_PER_DAY = 4;
 const DAYS = 30;
 
@@ -41,7 +48,7 @@ export default function (data: string) {
     }
     total = Math.max(total, parseInt(totalStr));
     return [date, all] as [string, Record<string, number>];
-  })
+  });
 
   const sortedTags = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
   const tags = ['vibecoding', ...sortedTags.filter((tag) => tag !== 'vibecoding')];
@@ -53,26 +60,36 @@ export default function (data: string) {
     }
   }
 
+  const rangeTrend: [number, number][][] = [];
   const trend: [string, ...number[]][] = [];
   let lastN = 0;
   let last: [string, ...number[]] | undefined = void 0;
+  let ranges: [number, number][] | undefined = void 0;
   for (const [date, all] of allDates) {
     if (!last || last[0] !== date) {
       if (last) {
         divide(last, lastN);
+        rangeTrend.push(ranges!);
         trend.push(last);
       }
       lastN = 1;
-      last = [date, ...tags.map((tag) => all[tag] || 0)];
+      const values = tags.map((tag) => all[tag] || 0);
+      ranges = values.map((v) => [v, v]);
+      last = [date, ...values];
     } else {
       for (let i = 0; i < tags.length; i++) {
-        (last[i + 1] as number) += all[tags[i]] || 0;
+        const v = all[tags[i]] || 0;
+        (last[i + 1] as number) += v;
+        const [min, max] = ranges![i];
+        ranges![i][0] = Math.min(min, v);
+        ranges![i][1] = Math.max(max, v);
       }
       lastN++;
     }
   }
   if (last) {
     divide(last, lastN);
+    rangeTrend.push(ranges!);
     trend.push(last);
   }
 
@@ -117,14 +134,22 @@ export default function (data: string) {
     tooltip: {
       trigger: 'axis',
       className: 'tooltip',
-      valueFormatter: function (v: number | unknown) {
-        if (typeof v === 'number') {
-          if (v % 1 === 0) {
-            return v.toFixed(0);
-          }
-          return `${Math.floor(v)}~${Math.ceil(v)}`;
-        }
-        return v;
+      formatter: (params: Series[]) => {
+        const date = trend[params[0].dataIndex][0];
+        const rows = params.map(({ color, dataIndex, seriesIndex }) => {
+          const min = rangeTrend[dataIndex][seriesIndex][0];
+          const max = rangeTrend[dataIndex][seriesIndex][1];
+          const name = tags[seriesIndex];
+          const range = min === max ? `${min}` : `${min}~${max}`;
+          return `<tr>
+  <td class="tooltip-name">
+    <span class="color" style="background-color: ${color}"></span>
+    ${name}
+  </td>
+  <td class="tooltip-range">${range}</td>
+</tr>`;
+        });
+        return `<div class="tooltip-date">${date}</div><table>${rows.join('')}</table>`;
       },
     },
     dataset,
