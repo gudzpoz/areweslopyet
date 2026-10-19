@@ -13,6 +13,27 @@ main {
   border-radius: 1em;
 }
 
+.date-range {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75em 1.5em;
+  margin: 1.5em 0;
+}
+
+.date-range label {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.date-range input {
+  font: inherit;
+  padding: 0.35em;
+  border: 1px solid #aaa;
+  border-radius: 5px;
+  background-color: white;
+}
 #app {
   margin: auto;
   width: 100%;

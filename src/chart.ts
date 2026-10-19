@@ -27,8 +27,6 @@ interface Series {
   seriesIndex: number,
 }
 
-const ENTRIES_PER_DAY = 4;
-const DAYS = 30;
 
 export default function (data: string) {
 
@@ -36,7 +34,7 @@ export default function (data: string) {
   const totals: Record<string, number> = {};
   const allDates = data.split('\n').filter(
     (line) => line.trim() !== '' && !line.startsWith('date'),
-  ).slice(-DAYS * ENTRIES_PER_DAY * 2).map((line) => {
+  ).map((line) => {
     const [date, totalStr, othersStr] = line.split(',');
     const othersSplit = othersStr.split(' ');
     const all: Record<string, number> = {};
@@ -93,6 +91,8 @@ export default function (data: string) {
     trend.push(last);
   }
 
+  let visibleTrend = trend;
+  let visibleRanges = rangeTrend;
   const colors = palette('mpn65', Math.min(tags.length, 65));
   if (colors.length < tags.length) {
     function shuffle(array: string[]) {
@@ -108,7 +108,7 @@ export default function (data: string) {
     colors.push(...rest);
   }
   const dataset = {
-    dimentions: ['date', ...tags],
+    dimensions: ['date', ...tags],
     source: trend,
   };
 
@@ -118,7 +118,7 @@ export default function (data: string) {
   const option = {
     xAxis: {
       type: 'category',
-      data: trend.map(([date]) => date).slice(-DAYS),
+      data: trend.map(([date]) => date),
     },
     yAxis: {
       type: 'value',
@@ -135,10 +135,10 @@ export default function (data: string) {
       trigger: 'axis',
       className: 'tooltip',
       formatter: (params: Series[]) => {
-        const date = trend[params[0].dataIndex][0];
+        const date = visibleTrend[params[0].dataIndex][0];
         const rows = params.map(({ color, dataIndex, seriesIndex }) => {
-          const min = rangeTrend[dataIndex][seriesIndex][0];
-          const max = rangeTrend[dataIndex][seriesIndex][1];
+          const min = visibleRanges[dataIndex][seriesIndex][0];
+          const max = visibleRanges[dataIndex][seriesIndex][1];
           const name = tags[seriesIndex];
           const range = min === max ? `${min}` : `${min}~${max}`;
           return `<tr>
@@ -179,4 +179,21 @@ export default function (data: string) {
   window.addEventListener('resize', resize);
   resize();
 
+  return {
+    dates: trend.map(([date]) => date),
+    setDateRange(start: string, end: string) {
+      const indices = trend.flatMap(([date], index) =>
+        date >= start && date <= end ? [index] : []);
+      visibleTrend = indices.map((index) => trend[index]);
+      visibleRanges = indices.map((index) => rangeTrend[index]);
+      option.dataset.source = visibleTrend;
+      option.xAxis.data = visibleTrend.map(([date]) => date);
+      chart.dispatchAction({ type: 'hideTip' });
+      chart.setOption({
+        dataset: option.dataset,
+        xAxis: option.xAxis,
+      });
+      return visibleTrend.length;
+    },
+  };
 }

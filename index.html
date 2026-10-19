@@ -14,6 +14,11 @@
         on <a href="https://lobste.rs">lobste.rs</a> front page.
       </p>
       <!-- <h1>YES</h1> -->
+      <div class="date-range" role="group" aria-label="Statistics date range">
+        <label for="start-date">From <input type="date" id="start-date" required disabled /></label>
+        <label for="end-date">To <input type="date" id="end-date" required disabled /></label>
+      </div>
+      <p id="range-status" role="status" hidden></p>
       <div id="app"><div id="chart"></div></div>
       <script type="module" src="/src/main.ts"></script>
     </main>
