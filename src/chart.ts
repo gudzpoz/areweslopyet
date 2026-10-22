@@ -49,7 +49,8 @@ export default function (data: string) {
   });
 
   const sortedTags = Object.entries(totals).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
-  const tags = ['vibecoding', ...sortedTags.filter((tag) => tag !== 'vibecoding')];
+  const tracked = 'security';
+  const tags = [tracked, ...sortedTags.filter((tag) => tag !== tracked)];
   const top5Tags = new Set(tags.slice(0, 5));
 
   function divide(arr: [string, ...number[]], n: number) {
